@@ -72,10 +72,16 @@ const publicSecondaryNav = [
   { href: "/campus", label: "Campus", icon: BookOpen },
 ];
 
-const staffNav = [
+// Desktop shows the full admin nav flat. Mobile's bottom bar only has room
+// for the highest-frequency items — the rest live under /admin/more, same
+// split pattern as the student nav.
+const staffPrimaryNav = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/cases", label: "Cases", icon: ClipboardList },
   { href: "/admin/events", label: "Events", icon: CalendarDays },
+];
+
+const staffSecondaryNav = [
   { href: "/admin/clubs", label: "Clubs", icon: Users },
   { href: "/admin/deals", label: "Deals", icon: Tag },
   { href: "/admin/news", label: "News", icon: Megaphone },
@@ -87,15 +93,18 @@ const staffNav = [
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
+const staffNav = [...staffPrimaryNav, ...staffSecondaryNav];
+
 export function AppShell({ children, isAuthenticated, isAdmin, displayName, unreadNotifications }: Props) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const primaryNav = isAdmin ? staffNav : isAuthenticated ? studentPrimaryNav : publicPrimaryNav;
-  const secondaryNav = isAdmin ? [] : isAuthenticated ? studentSecondaryNav : publicSecondaryNav;
-  const desktopNav = [...primaryNav, ...secondaryNav];
-  const mobileNav = isAdmin ? staffNav : primaryNav;
-  const isInMore = !isAdmin && secondaryNav.some((item) => pathname === item.href);
+  const primaryNav = isAdmin ? staffPrimaryNav : isAuthenticated ? studentPrimaryNav : publicPrimaryNav;
+  const secondaryNav = isAdmin ? staffSecondaryNav : isAuthenticated ? studentSecondaryNav : publicSecondaryNav;
+  const desktopNav = isAdmin ? staffNav : [...primaryNav, ...secondaryNav];
+  const mobileNav = primaryNav;
+  const moreHref = isAdmin ? "/admin/more" : "/more";
+  const isInMore = secondaryNav.some((item) => pathname === item.href);
 
   async function handleLogout() {
     await logoutAction();
@@ -113,7 +122,7 @@ export function AppShell({ children, isAuthenticated, isAdmin, displayName, unre
             Union
           </Link>
 
-          <nav className="flex flex-1 flex-wrap items-center gap-1.5">
+          <nav className="flex flex-1 flex-wrap items-center justify-center gap-1.5">
             {desktopNav.map((item) => {
               const active = pathname === item.href;
               const Icon = item.icon;
@@ -251,18 +260,16 @@ export function AppShell({ children, isAuthenticated, isAdmin, displayName, unre
           );
         })}
 
-        {!isAdmin && (
-          <Link
-            href="/more"
-            className={cn(
-              "flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted-foreground",
-              (pathname === "/more" || isInMore) && "text-primary"
-            )}
-          >
-            <MoreHorizontal size={20} strokeWidth={2} />
-            More
-          </Link>
-        )}
+        <Link
+          href={moreHref}
+          className={cn(
+            "flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted-foreground",
+            (pathname === moreHref || isInMore) && "text-primary"
+          )}
+        >
+          <MoreHorizontal size={20} strokeWidth={2} />
+          More
+        </Link>
       </nav>
     </div>
   );

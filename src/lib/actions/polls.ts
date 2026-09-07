@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
+import { checkRateLimit } from "@/lib/rate-limit";
 import type { PollStatus } from "@/types/domain";
 
 export interface PollOptionInput {
@@ -169,6 +170,12 @@ export async function closePollAction(id: string) {
 export async function voteAction(pollId: string, optionId: string) {
   const user = await getCurrentUser();
   if (!user) return { error: "Not authenticated." };
+
+  // One vote per person is DB-enforced, but nothing stopped rapid-fire
+  // delete/re-insert vote flipping — cap it well above any real
+  // change-of-mind usage.
+  const allowed = await checkRateLimit("poll_vote", user.profile.id, 20, 60);
+  if (!allowed) return { error: "Too many vote changes. Please slow down." };
 
   const supabase = await createClient();
   // Remove any prior vote first — a viewer can change their mind while a

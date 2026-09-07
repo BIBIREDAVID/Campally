@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/site-url";
+import { checkIpRateLimit, checkRateLimit } from "@/lib/rate-limit";
+import { isSchoolEmail, isValidMatricNumber } from "@/lib/validation";
 
 export interface SignUpInput {
   firstName: string;
@@ -16,6 +18,11 @@ export interface SignUpInput {
 }
 
 export async function signUpAction(input: SignUpInput) {
+  // 5 signups per hour per IP blocks scripted account creation while
+  // leaving plenty of room for a shared campus NAT/wifi.
+  const allowed = await checkIpRateLimit("signup", 5, 3600);
+  if (!allowed) return { error: "Too many signup attempts. Please try again later." };
+
   const supabase = await createClient();
 
   // Validate the school email domain against the tenant's configured domain.
@@ -25,14 +32,11 @@ export async function signUpAction(input: SignUpInput) {
     .eq("slug", "demo-university")
     .single();
 
-  if (
-    tenant?.student_email_domain &&
-    !input.schoolEmail.toLowerCase().endsWith(tenant.student_email_domain.toLowerCase())
-  ) {
-    return { error: `Please use your school email ending in ${tenant.student_email_domain}` };
+  if (!isSchoolEmail(input.schoolEmail, tenant?.student_email_domain)) {
+    return { error: `Please use your school email ending in ${tenant?.student_email_domain}` };
   }
 
-  if (!/^[A-Za-z0-9/-]{4,20}$/.test(input.matricNumber)) {
+  if (!isValidMatricNumber(input.matricNumber)) {
     return { error: "Enter a valid matric number." };
   }
 
@@ -60,6 +64,14 @@ export async function signUpAction(input: SignUpInput) {
 }
 
 export async function resendConfirmationAction(email: string) {
+  // Keyed by email (not just IP) so one address can't be spammed with
+  // confirmation emails from multiple IPs, and one IP can't burn through
+  // many addresses.
+  const allowedForEmail = await checkRateLimit("resend_confirmation", email.toLowerCase(), 3, 600);
+  if (!allowedForEmail) return { error: "Too many resend attempts. Please wait a few minutes." };
+  const allowedForIp = await checkIpRateLimit("resend_confirmation", 10, 600);
+  if (!allowedForIp) return { error: "Too many resend attempts. Please wait a few minutes." };
+
   const supabase = await createClient();
   const siteUrl = getSiteUrl();
   const { error } = await supabase.auth.resend({
@@ -72,6 +84,12 @@ export async function resendConfirmationAction(email: string) {
 }
 
 export async function loginAction(email: string, password: string) {
+  // Keyed by email+IP together so brute-forcing one account from one IP is
+  // capped, without letting a single IP's failed guesses against many
+  // different accounts blow through a shared bucket.
+  const allowed = await checkIpRateLimit(`login:${email.toLowerCase()}`, 8, 300);
+  if (!allowed) return { error: "Too many login attempts. Please wait a few minutes and try again." };
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: error.message };
