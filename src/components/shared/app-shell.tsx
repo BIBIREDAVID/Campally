@@ -20,6 +20,8 @@ import {
   Search,
   BarChart3,
   Vote,
+  ShieldAlert,
+  Settings,
 } from "lucide-react";
 import { logoutAction } from "@/lib/actions/auth";
 import { LinkButton } from "@/components/ui/link-button";
@@ -81,6 +83,8 @@ const staffNav = [
   { href: "/admin/campus", label: "Campus", icon: BookOpen },
   { href: "/admin/students", label: "Students", icon: GraduationCap },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },
+  { href: "/admin/audit", label: "Audit Log", icon: ShieldAlert },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export function AppShell({ children, isAuthenticated, isAdmin, displayName, unreadNotifications }: Props) {

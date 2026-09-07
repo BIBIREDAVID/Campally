@@ -592,3 +592,26 @@ export interface PollResult {
   label: string;
   votes: number;
 }
+
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  primary_color: string | null;
+  logo_url: string | null;
+  student_email_domain: string;
+  created_at: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  tenant_id: string;
+  actor_id: string | null;
+  action: string;
+  entity_type: string;
+  entity_id: string | null;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  created_at: string;
+  users?: { first_name: string; last_name: string } | null;
+}
