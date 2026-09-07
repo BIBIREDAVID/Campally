@@ -14,6 +14,10 @@ const unionLinks = [
   { href: "/search", label: "Search" },
 ];
 
+// The Parliamentary Council is a separate LASUSU arm with its own site —
+// linked externally rather than folded into this app.
+const externalLinks = [{ href: "https://lasususpc.vercel.app", label: "Parliamentary Council" }];
+
 export function Footer() {
   return (
     <footer className="border-t border-border">
@@ -44,6 +48,17 @@ export function Footer() {
               <Link key={link.href} href={link.href} className="text-sm text-muted-foreground hover:text-foreground">
                 {link.label}
               </Link>
+            ))}
+            {externalLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                {link.label}
+              </a>
             ))}
           </div>
         </div>
