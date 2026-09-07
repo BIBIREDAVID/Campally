@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getSiteUrl } from "@/lib/site-url";
 
 export interface SignUpInput {
   firstName: string;
@@ -35,7 +36,7 @@ export async function signUpAction(input: SignUpInput) {
     return { error: "Enter a valid matric number." };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl = getSiteUrl();
 
   const { error } = await supabase.auth.signUp({
     email: input.schoolEmail,
@@ -60,7 +61,7 @@ export async function signUpAction(input: SignUpInput) {
 
 export async function resendConfirmationAction(email: string) {
   const supabase = await createClient();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl = getSiteUrl();
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,

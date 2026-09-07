@@ -1,8 +1,10 @@
+import { CalendarDays } from "lucide-react";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { listPublishedEvents } from "@/lib/queries/events";
 import { EventFilters } from "@/components/events/event-filters";
 import { ContentCard } from "@/components/shared/content-card";
 import { FeaturedCard } from "@/components/shared/featured-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { EVENT_CATEGORY_LABELS, type EventCategory } from "@/types/domain";
 
 export default async function EventsPage({
@@ -50,12 +52,11 @@ export default async function EventsPage({
       <EventFilters activeWhen={activeWhen} activeCategory={category} />
 
       {events.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">No events {activeWhen === "today" ? "today" : "here"}</p>
-          <p className="mt-1 text-sm">
-            {activeWhen === "today" ? "Check This Week or Upcoming instead." : "Check back soon."}
-          </p>
-        </div>
+        <EmptyState
+          icon={CalendarDays}
+          title={`No events ${activeWhen === "today" ? "today" : "here"}`}
+          description={activeWhen === "today" ? "Check This Week or Upcoming instead." : "Check back soon."}
+        />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((e) => {
@@ -68,6 +69,7 @@ export default async function EventsPage({
                 title={e.title}
                 description={e.description}
                 imageUrl={e.cover_image_url}
+                fallbackIcon={CalendarDays}
                 tags={[
                   { label: EVENT_CATEGORY_LABELS[e.category] },
                   ...(isFull ? [{ label: "Full", variant: "urgent" as const }] : []),

@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Megaphone, CalendarDays, Users, BookOpen, Tag } from "lucide-react";
+import { Megaphone, CalendarDays, Users, BookOpen, Tag, SearchX } from "lucide-react";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { getDefaultTenantId, globalSearch, type SearchResult } from "@/lib/queries/search";
 import { SearchBar } from "@/components/shared/search-bar";
+import { EmptyState } from "@/components/shared/empty-state";
 
 const KIND_META: Record<SearchResult["kind"], { label: string; icon: typeof Megaphone }> = {
   news: { label: "News", icon: Megaphone },
@@ -36,10 +37,11 @@ export default async function SearchPage({
           Search news, events, clubs, campus information, and deals all at once.
         </p>
       ) : results.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">No results for &ldquo;{q}&rdquo;</p>
-          <p className="mt-1 text-sm">Try different words, or check your spelling.</p>
-        </div>
+        <EmptyState
+          icon={SearchX}
+          title={`No results for "${q}"`}
+          description="Try different words, or check your spelling."
+        />
       ) : (
         <div className="flex flex-col gap-2">
           {results.map((r) => {

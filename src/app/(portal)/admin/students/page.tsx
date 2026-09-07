@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { GraduationCap } from "lucide-react";
 import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
 import { listStudents } from "@/lib/queries/admin";
 import { StudentSearch } from "@/components/admin/student-search";
+import { EmptyState } from "@/components/shared/empty-state";
 
 export default async function AdminStudentsPage({
   searchParams,
@@ -24,10 +26,7 @@ export default async function AdminStudentsPage({
       <StudentSearch initialQuery={q} />
 
       {students.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">No students found</p>
-          <p className="mt-1 text-sm">Try a different search.</p>
-        </div>
+        <EmptyState icon={GraduationCap} title="No students found" description="Try a different search." />
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
           <table className="w-full text-sm">

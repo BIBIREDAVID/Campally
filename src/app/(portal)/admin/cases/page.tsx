@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { PartyPopper } from "lucide-react";
 import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
 import { isOverdue, listCaseQueue } from "@/lib/queries/cases";
 import { StatusBadge, PriorityBadge, OverdueBadge } from "@/components/shared/status-badge";
 import { CaseQueueFilters } from "@/components/cases/case-queue-filters";
+import { EmptyState } from "@/components/shared/empty-state";
 import { CASE_PRIORITIES, CASE_STATUSES } from "@/types/domain";
 
 export default async function AdminCasesPage({
@@ -32,9 +34,7 @@ export default async function AdminCasesPage({
       </div>
 
       {cases.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">No cases match this filter 🎉</p>
-        </div>
+        <EmptyState icon={PartyPopper} title="No cases match this filter" />
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
           <table className="w-full text-sm">

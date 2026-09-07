@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { logoutAction } from "@/lib/actions/auth";
 import { LinkButton } from "@/components/ui/link-button";
+import { Footer } from "@/components/shared/footer";
+import { Logo } from "@/components/shared/logo";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -35,8 +37,8 @@ interface Props {
 // Student mobile bottom nav is deliberately capped at Home/Cases/More (see
 // Phase 2 IA decision): Cases earns a permanent slot on stakes, not
 // frequency, while lower-frequency content (News, Campus, Profile) lives
-// under More so the bar never grows past what fits a thumb. Desktop has
-// room, so its sidebar shows everything flat — no "More" needed there.
+// under More so the bar never grows past what fits a thumb. Desktop's top
+// nav has room to show everything flat — no "More" needed there.
 const studentPrimaryNav = [
   { href: "/", label: "Home", icon: Home },
   { href: "/cases", label: "Cases", icon: ClipboardList },
@@ -96,17 +98,40 @@ export function AppShell({ children, isAuthenticated, isAdmin, displayName, unre
   }
 
   return (
-    <div className="flex min-h-svh flex-col md:flex-row">
-      {/* Desktop sidebar */}
-      <aside className="hidden w-60 shrink-0 flex-col gap-8 border-r border-border bg-card p-6 md:flex">
-        <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-2.5 text-base font-extrabold tracking-tight">
-            <span className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-accent-foreground shadow" />
+    <div className="flex min-h-svh flex-col">
+      {/* Desktop top nav */}
+      <header className="sticky top-0 z-20 hidden flex-col gap-3 border-b border-border bg-card/95 px-6 py-3.5 backdrop-blur md:flex">
+        <div className="flex items-center justify-between gap-6">
+          <Link href={isAdmin ? "/admin" : "/"} className="flex shrink-0 items-center gap-2.5 text-base font-extrabold tracking-tight">
+            <Logo size={32} priority />
             Union
-          </div>
-          <div className="flex items-center gap-1">
+          </Link>
+
+          <nav className="flex flex-1 flex-wrap items-center gap-1.5">
+            {desktopNav.map((item) => {
+              const active = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+                    active && "bg-primary text-primary-foreground shadow-sm hover:bg-primary hover:text-primary-foreground"
+                  )}
+                >
+                  <Icon size={15} strokeWidth={2} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-2">
             <Link
               href="/search"
+              aria-label="Search"
               className={cn(
                 "flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 pathname === "/search" && "bg-accent text-accent-foreground"
@@ -117,6 +142,7 @@ export function AppShell({ children, isAuthenticated, isAdmin, displayName, unre
             {isAuthenticated && (
               <Link
                 href="/notifications"
+                aria-label={unreadNotifications > 0 ? `Notifications, ${unreadNotifications} unread` : "Notifications"}
                 className={cn(
                   "relative flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                   pathname === "/notifications" && "bg-accent text-accent-foreground"
@@ -124,76 +150,65 @@ export function AppShell({ children, isAuthenticated, isAdmin, displayName, unre
               >
                 <Bell size={17} strokeWidth={2} />
                 {unreadNotifications > 0 && (
-                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--status-urgent)]" />
+                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--status-urgent)]" aria-hidden="true" />
                 )}
               </Link>
             )}
+
+            <div className="mx-1 h-5 w-px bg-border" />
+
+            {isAuthenticated ? (
+              <>
+                <span className="text-xs font-medium text-muted-foreground">{displayName}</span>
+                <button
+                  onClick={handleLogout}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10"
+                  aria-label="Log out"
+                >
+                  <LogOut size={16} strokeWidth={2} />
+                </button>
+              </>
+            ) : (
+              <>
+                <LinkButton href="/login" variant="outline" size="sm">
+                  Log in
+                </LinkButton>
+                <LinkButton href="/signup" size="sm">
+                  Sign up
+                </LinkButton>
+              </>
+            )}
           </div>
         </div>
-        <nav className="flex flex-col gap-1">
-          {desktopNav.map((item) => {
-            const active = pathname === item.href;
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
-                  active && "bg-accent text-accent-foreground"
-                )}
-              >
-                <Icon size={17} strokeWidth={2} />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {isAuthenticated ? (
-          <button
-            onClick={handleLogout}
-            className="mt-auto flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-destructive hover:bg-destructive/10"
-          >
-            <LogOut size={17} strokeWidth={2} />
-            Log out
-          </button>
-        ) : (
-          <div className="mt-auto flex flex-col gap-2">
-            <p className="px-1 text-xs text-muted-foreground">Sign up to submit cases, RSVP, and more.</p>
-            <LinkButton href="/signup" size="sm" className="w-full">
-              Sign up
-            </LinkButton>
-            <LinkButton href="/login" variant="outline" size="sm" className="w-full">
-              Log in
-            </LinkButton>
-          </div>
-        )}
-      </aside>
+      </header>
 
       {/* Mobile top bar */}
       <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3 md:hidden">
         <div className="flex items-center gap-2 text-sm font-extrabold">
-          <span className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-accent-foreground" />
+          <Logo size={28} />
           Union
         </div>
         <div className="flex items-center gap-2.5">
           {isAuthenticated ? (
             <>
               <span className="text-xs font-medium text-muted-foreground">{displayName}</span>
-              <Link href="/search" className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground">
+              <Link href="/search" aria-label="Search" className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground">
                 <Search size={17} strokeWidth={2} />
               </Link>
-              <Link href="/notifications" className="relative flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground">
+              <Link
+                href="/notifications"
+                aria-label={unreadNotifications > 0 ? `Notifications, ${unreadNotifications} unread` : "Notifications"}
+                className="relative flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground"
+              >
                 <Bell size={18} strokeWidth={2} />
                 {unreadNotifications > 0 && (
-                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--status-urgent)]" />
+                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--status-urgent)]" aria-hidden="true" />
                 )}
               </Link>
             </>
           ) : (
             <>
-              <Link href="/search" className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground">
+              <Link href="/search" aria-label="Search" className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground">
                 <Search size={17} strokeWidth={2} />
               </Link>
               <Link href="/login" className="flex items-center gap-1 text-xs font-semibold text-primary">
@@ -204,7 +219,10 @@ export function AppShell({ children, isAuthenticated, isAdmin, displayName, unre
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-4 pb-24 md:p-8 md:pb-8">{children}</main>
+      <main className="flex flex-1 flex-col overflow-y-auto">
+        <div className="flex-1 p-4 pb-24 md:p-8 md:pb-8">{children}</div>
+        {!isAdmin && <Footer />}
+      </main>
 
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-10 flex border-t border-border bg-card md:hidden">
@@ -215,6 +233,7 @@ export function AppShell({ children, isAuthenticated, isAdmin, displayName, unre
             <Link
               key={item.href}
               href={item.href}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted-foreground",
                 active && "text-primary"

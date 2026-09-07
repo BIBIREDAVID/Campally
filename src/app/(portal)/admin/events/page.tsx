@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, CalendarDays } from "lucide-react";
 import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
 import { listEventsAdmin } from "@/lib/queries/events";
 import { EventStatusBadge } from "@/components/events/event-badges";
+import { AdminContentCard } from "@/components/admin/admin-content-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { LinkButton } from "@/components/ui/link-button";
 import { EVENT_CATEGORY_LABELS } from "@/types/domain";
 
@@ -24,45 +25,21 @@ export default async function AdminEventsPage() {
       </div>
 
       {events.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">No events yet</p>
-          <p className="mt-1 text-sm">Create your first campus event.</p>
-        </div>
+        <EmptyState icon={CalendarDays} title="No events yet" description="Create your first campus event." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Starts</th>
-                <th className="px-4 py-3">RSVPs</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {events.map((e) => (
-                <tr key={e.id} className="border-b border-border last:border-0 hover:bg-muted/40">
-                  <td className="px-4 py-3">
-                    <Link href={`/admin/events/${e.id}`} className="font-medium hover:text-primary">
-                      {e.title}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{EVENT_CATEGORY_LABELS[e.category]}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {new Date(e.start_at).toLocaleDateString(undefined, { dateStyle: "medium" })}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {e.rsvp_count ?? 0}
-                    {e.capacity ? ` / ${e.capacity}` : ""}
-                  </td>
-                  <td className="px-4 py-3">
-                    <EventStatusBadge status={e.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {events.map((e) => (
+            <AdminContentCard
+              key={e.id}
+              href={`/admin/events/${e.id}`}
+              title={e.title}
+              imageUrl={e.cover_image_url}
+              fallbackIcon={CalendarDays}
+              category={EVENT_CATEGORY_LABELS[e.category]}
+              meta={`${new Date(e.start_at).toLocaleDateString(undefined, { dateStyle: "medium" })} · ${e.rsvp_count ?? 0}${e.capacity ? ` / ${e.capacity}` : ""} RSVPs`}
+              statusBadge={<EventStatusBadge status={e.status} />}
+            />
+          ))}
         </div>
       )}
     </div>

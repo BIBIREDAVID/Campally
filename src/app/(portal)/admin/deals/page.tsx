@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Tag } from "lucide-react";
 import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
 import { listDealsAdmin } from "@/lib/queries/deals";
 import { DealStatusBadge } from "@/components/deals/deal-badges";
+import { AdminContentCard } from "@/components/admin/admin-content-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { LinkButton } from "@/components/ui/link-button";
 import { DEAL_CATEGORY_LABELS } from "@/types/domain";
 
@@ -24,42 +25,21 @@ export default async function AdminDealsPage() {
       </div>
 
       {deals.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">No deals yet</p>
-          <p className="mt-1 text-sm">Add the first student discount or benefit.</p>
-        </div>
+        <EmptyState icon={Tag} title="No deals yet" description="Add the first student discount or benefit." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-3">Merchant</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Discount</th>
-                <th className="px-4 py-3">Expires</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {deals.map((d) => (
-                <tr key={d.id} className="border-b border-border last:border-0 hover:bg-muted/40">
-                  <td className="px-4 py-3">
-                    <Link href={`/admin/deals/${d.id}`} className="font-medium hover:text-primary">
-                      {d.merchant_name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{DEAL_CATEGORY_LABELS[d.category]}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{d.discount_summary}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {d.expires_at ? new Date(d.expires_at).toLocaleDateString(undefined, { dateStyle: "medium" }) : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <DealStatusBadge status={d.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {deals.map((d) => (
+            <AdminContentCard
+              key={d.id}
+              href={`/admin/deals/${d.id}`}
+              title={d.merchant_name}
+              imageUrl={d.logo_url}
+              fallbackIcon={Tag}
+              category={DEAL_CATEGORY_LABELS[d.category]}
+              meta={`${d.discount_summary}${d.expires_at ? ` · Expires ${new Date(d.expires_at).toLocaleDateString(undefined, { dateStyle: "medium" })}` : ""}`}
+              statusBadge={<DealStatusBadge status={d.status} />}
+            />
+          ))}
         </div>
       )}
     </div>

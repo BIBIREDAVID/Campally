@@ -4,6 +4,7 @@ import { ClipboardList, Plus } from "lucide-react";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { listMyCases } from "@/lib/queries/cases";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { EmptyState } from "@/components/shared/empty-state";
 import { LinkButton } from "@/components/ui/link-button";
 
 export default async function CasesPage() {
@@ -23,16 +24,16 @@ export default async function CasesPage() {
       </div>
 
       {cases.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-accent text-accent-foreground">
-            <ClipboardList size={22} />
-          </div>
-          <h2 className="text-base font-bold text-foreground">No cases yet</h2>
-          <p className="text-sm">Report an issue and the Union will follow up here.</p>
-          <LinkButton href="/cases/new" className="mt-1">
-            Submit a Case
-          </LinkButton>
-        </div>
+        <EmptyState
+          icon={ClipboardList}
+          title="No cases yet"
+          description="Report an issue and the Union will follow up here."
+          action={
+            <LinkButton href="/cases/new" className="mt-1">
+              Submit a Case
+            </LinkButton>
+          }
+        />
       ) : (
         <ul className="flex flex-col gap-2.5">
           {cases.map((c) => (

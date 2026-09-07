@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
+import { Bell } from "lucide-react";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { listNotifications } from "@/lib/queries/notifications";
 import { NotificationItem } from "@/components/notifications/notification-item";
 import { MarkAllReadButton } from "@/components/notifications/mark-all-read-button";
+import { EmptyState } from "@/components/shared/empty-state";
 
 export default async function NotificationsPage() {
   const user = await getCurrentUser();
@@ -19,10 +21,7 @@ export default async function NotificationsPage() {
       </div>
 
       {notifications.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">No notifications yet</p>
-          <p className="mt-1 text-sm">Case updates, announcements, and club news will show up here.</p>
-        </div>
+        <EmptyState icon={Bell} title="No notifications yet" description="Case updates, announcements, and club news will show up here." />
       ) : (
         <div className="flex flex-col gap-2">
           {notifications.map((n) => (

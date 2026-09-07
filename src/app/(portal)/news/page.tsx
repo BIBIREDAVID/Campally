@@ -1,7 +1,9 @@
+import { Megaphone } from "lucide-react";
 import { listPublishedAnnouncements } from "@/lib/queries/news";
 import { PillTabs } from "@/components/shared/pill-tabs";
 import { ContentCard } from "@/components/shared/content-card";
 import { FeaturedCard } from "@/components/shared/featured-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { ANNOUNCEMENT_CATEGORIES, ANNOUNCEMENT_CATEGORY_LABELS, type AnnouncementCategory } from "@/types/domain";
 
 export default async function NewsPage({
@@ -48,10 +50,7 @@ export default async function NewsPage({
       </div>
 
       {announcements.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">Nothing new right now</p>
-          <p className="mt-1 text-sm">Check back soon, or try a different category.</p>
-        </div>
+        <EmptyState icon={Megaphone} title="Nothing new right now" description="Check back soon, or try a different category." />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(featured ? rest : announcements).map((a) => (
@@ -61,6 +60,7 @@ export default async function NewsPage({
               title={a.title}
               description={a.body}
               imageUrl={a.cover_image_url}
+              fallbackIcon={Megaphone}
               tags={[
                 { label: ANNOUNCEMENT_CATEGORY_LABELS[a.category] },
                 ...(a.priority === "urgent" ? [{ label: "Urgent", variant: "urgent" as const }] : []),

@@ -1,7 +1,9 @@
+import { BookOpen } from "lucide-react";
 import { listPublishedCampusContent } from "@/lib/queries/campus";
 import { CampusSearch } from "@/components/campus/campus-search";
 import { PillTabs } from "@/components/shared/pill-tabs";
 import { ContentCard } from "@/components/shared/content-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { CAMPUS_CATEGORIES, CAMPUS_CATEGORY_LABELS, type CampusContentCategory } from "@/types/domain";
 
 export default async function CampusPage({
@@ -24,20 +26,15 @@ export default async function CampusPage({
       <PillTabs paramKey="category" options={tabOptions} activeValue={category ?? "all"} firstIsDefault />
 
       {articles.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          {q ? (
-            <>
-              <p className="text-base font-bold text-foreground">No results for &quot;{q}&quot;</p>
-              <p className="mt-1 text-sm">Try a different category, or contact the Student Union.</p>
-            </>
-          ) : (
-            <p className="text-base font-bold text-foreground">Nothing here yet</p>
-          )}
-        </div>
+        <EmptyState
+          icon={BookOpen}
+          title={q ? `No results for "${q}"` : "Nothing here yet"}
+          description={q ? "Try a different category, or contact the Student Union." : undefined}
+        />
       ) : category ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {articles.map((a) => (
-            <ContentCard key={a.id} href={`/campus/${a.id}`} title={a.title} description={a.body} />
+            <ContentCard key={a.id} href={`/campus/${a.id}`} title={a.title} description={a.body} fallbackIcon={BookOpen} />
           ))}
         </div>
       ) : (
@@ -51,7 +48,7 @@ export default async function CampusPage({
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map((a) => (
-                  <ContentCard key={a.id} href={`/campus/${a.id}`} title={a.title} description={a.body} />
+                  <ContentCard key={a.id} href={`/campus/${a.id}`} title={a.title} description={a.body} fallbackIcon={BookOpen} />
                 ))}
               </div>
             </div>

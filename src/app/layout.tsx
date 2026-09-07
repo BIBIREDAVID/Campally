@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/shared/sw-register";
+import { ThemeProvider } from "@/components/shared/theme-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -10,24 +11,30 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Union",
+  title: "Union — LASU Students' Union",
   description: "Your Student Union, in your pocket.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.png",
+    apple: "/icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#3b6ef6",
+  themeColor: "#1e3a6e",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
-        <Toaster />
-        <ServiceWorkerRegister />
+        <ThemeProvider>
+          {children}
+          <Toaster />
+          <ServiceWorkerRegister />
+        </ThemeProvider>
       </body>
     </html>
   );

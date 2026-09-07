@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
 import { listClubsAdmin } from "@/lib/queries/clubs";
 import { ClubStatusBadge } from "@/components/clubs/club-badges";
+import { AdminContentCard } from "@/components/admin/admin-content-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { LinkButton } from "@/components/ui/link-button";
 import { CLUB_CATEGORY_LABELS } from "@/types/domain";
 
@@ -24,38 +25,21 @@ export default async function AdminClubsPage() {
       </div>
 
       {clubs.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">No clubs yet</p>
-          <p className="mt-1 text-sm">Create the first recognised club or society.</p>
-        </div>
+        <EmptyState icon={Users} title="No clubs yet" description="Create the first recognised club or society." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Followers</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clubs.map((c) => (
-                <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/40">
-                  <td className="px-4 py-3">
-                    <Link href={`/admin/clubs/${c.id}`} className="font-medium hover:text-primary">
-                      {c.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{CLUB_CATEGORY_LABELS[c.category]}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{c.follower_count ?? 0}</td>
-                  <td className="px-4 py-3">
-                    <ClubStatusBadge status={c.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {clubs.map((c) => (
+            <AdminContentCard
+              key={c.id}
+              href={`/admin/clubs/${c.id}`}
+              title={c.name}
+              imageUrl={c.cover_image_url ?? c.logo_url}
+              fallbackIcon={Users}
+              category={CLUB_CATEGORY_LABELS[c.category]}
+              meta={`${c.follower_count ?? 0} follower${c.follower_count === 1 ? "" : "s"}`}
+              statusBadge={<ClubStatusBadge status={c.status} />}
+            />
+          ))}
         </div>
       )}
     </div>

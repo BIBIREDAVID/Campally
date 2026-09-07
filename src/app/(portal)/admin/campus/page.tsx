@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, BookOpen } from "lucide-react";
 import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
 import { listCampusContentAdmin } from "@/lib/queries/campus";
 import { CampusStatusBadge } from "@/components/campus/campus-status-badge";
+import { AdminContentCard } from "@/components/admin/admin-content-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { LinkButton } from "@/components/ui/link-button";
 import { CAMPUS_CATEGORY_LABELS } from "@/types/domain";
 
@@ -24,36 +25,19 @@ export default async function AdminCampusPage() {
       </div>
 
       {articles.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">No campus content yet</p>
-          <p className="mt-1 text-sm">Add your first handbook article for students.</p>
-        </div>
+        <EmptyState icon={BookOpen} title="No campus content yet" description="Add your first handbook article for students." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {articles.map((a) => (
-                <tr key={a.id} className="border-b border-border last:border-0 hover:bg-muted/40">
-                  <td className="px-4 py-3">
-                    <Link href={`/admin/campus/${a.id}`} className="font-medium hover:text-primary">
-                      {a.title}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{CAMPUS_CATEGORY_LABELS[a.category]}</td>
-                  <td className="px-4 py-3">
-                    <CampusStatusBadge status={a.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {articles.map((a) => (
+            <AdminContentCard
+              key={a.id}
+              href={`/admin/campus/${a.id}`}
+              title={a.title}
+              fallbackIcon={BookOpen}
+              category={CAMPUS_CATEGORY_LABELS[a.category]}
+              statusBadge={<CampusStatusBadge status={a.status} />}
+            />
+          ))}
         </div>
       )}
     </div>

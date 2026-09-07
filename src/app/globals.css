@@ -39,6 +39,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-warm: var(--warm);
+  --color-warm-foreground: var(--warm-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -72,6 +74,25 @@
   --status-in-progress: oklch(0.65 0.15 70);
   --status-resolved: oklch(0.6 0.15 145);
   --status-urgent: oklch(0.5 0.24 25);
+
+  /* Warm secondary accent — the counterpart to primary blue, used for
+     illustration, hero moments, and playful highlights. Pulled from the
+     LASU Students' Union crest's red wave (not an arbitrary coral) so the
+     app's color language actually traces back to the real institution.
+     Never used for status/semantic meaning (those stay on the --status-*
+     scale) so the two systems never collide. */
+  --warm: oklch(0.55 0.19 25);
+  --warm-foreground: oklch(0.985 0 0);
+
+  /* A small illustration palette — decorative shapes only, never text or
+     interactive UI. Gives empty-states and hero art a "colorful, hand-drawn"
+     character without expanding the functional color system. */
+  --illo-blue: oklch(0.55 0.19 260);
+  --illo-coral: oklch(0.55 0.19 25);
+  --illo-gold: oklch(0.83 0.14 85);
+  --illo-mint: oklch(0.78 0.12 165);
+  --illo-grape: oklch(0.68 0.14 305);
+
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -95,18 +116,32 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  /* Union's blue carried into dark mode — the original template default
+     here was a plain grayscale primary, which meant every "brand" surface
+     (active nav pill, primary buttons) silently lost its colour the moment
+     dark mode actually activated. */
+  --primary: oklch(0.68 0.17 260);
+  --primary-foreground: oklch(0.14 0.02 260);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.28 0.05 260);
+  --accent-foreground: oklch(0.85 0.06 260);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(0.68 0.17 260);
+
+  --warm: oklch(0.62 0.18 25);
+  --warm-foreground: oklch(0.985 0 0);
+
+  --illo-blue: oklch(0.65 0.17 260);
+  --illo-coral: oklch(0.62 0.18 25);
+  --illo-gold: oklch(0.75 0.13 85);
+  --illo-mint: oklch(0.7 0.11 165);
+  --illo-grape: oklch(0.62 0.13 305);
+
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -131,5 +166,18 @@
   }
   html {
     @apply font-sans;
+  }
+
+  /* Every link and button gets a visible, consistent focus ring by
+     default — a keyboard user shouldn't have to guess where they are.
+     Individual components can still be more specific if a ring genuinely
+     doesn't fit (e.g. an element that already shows selection some other
+     way), but the fallback is app-wide rather than per-component. */
+  a:focus-visible,
+  button:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 }

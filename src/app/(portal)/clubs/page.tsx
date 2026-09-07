@@ -1,7 +1,9 @@
+import { Users } from "lucide-react";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { listPublishedClubs } from "@/lib/queries/clubs";
 import { ClubFilters } from "@/components/clubs/club-filters";
 import { ContentCard } from "@/components/shared/content-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { CLUB_CATEGORY_LABELS, type ClubCategory } from "@/types/domain";
 
 export default async function ClubsPage({
@@ -24,10 +26,7 @@ export default async function ClubsPage({
       <ClubFilters activeCategory={category} initialQuery={q} />
 
       {clubs.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">No clubs found</p>
-          <p className="mt-1 text-sm">Try a different search or category.</p>
-        </div>
+        <EmptyState icon={Users} title="No clubs found" description="Try a different search or category." />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {clubs.map((c) => (
@@ -37,6 +36,7 @@ export default async function ClubsPage({
               title={c.name}
               description={c.description}
               imageUrl={c.cover_image_url ?? c.logo_url}
+              fallbackIcon={Users}
               tags={[
                 { label: CLUB_CATEGORY_LABELS[c.category] },
                 ...(c.viewer_follows ? [{ label: "Following" }] : []),

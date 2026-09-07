@@ -1,7 +1,9 @@
+import { Tag } from "lucide-react";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { listPublishedDeals } from "@/lib/queries/deals";
 import { DealFilters } from "@/components/deals/deal-filters";
 import { ContentCard } from "@/components/shared/content-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { DEAL_CATEGORY_LABELS, type DealCategory } from "@/types/domain";
 
 export default async function DealsPage({
@@ -25,12 +27,11 @@ export default async function DealsPage({
       <DealFilters activeCategory={category} initialQuery={q} activeSaved={savedOnly ? "saved" : "all"} showSavedFilter={!!user} />
 
       {deals.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground shadow-sm">
-          <p className="text-base font-bold text-foreground">
-            {savedOnly ? "No saved deals" : "No deals found"}
-          </p>
-          <p className="mt-1 text-sm">{savedOnly ? "Save deals to find them here." : "Check back soon."}</p>
-        </div>
+        <EmptyState
+          icon={Tag}
+          title={savedOnly ? "No saved deals" : "No deals found"}
+          description={savedOnly ? "Save deals to find them here." : "Check back soon."}
+        />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {deals.map((d) => (
@@ -40,6 +41,7 @@ export default async function DealsPage({
               title={d.merchant_name}
               description={d.discount_summary}
               imageUrl={d.logo_url}
+              fallbackIcon={Tag}
               tags={[{ label: DEAL_CATEGORY_LABELS[d.category] }]}
               meta={d.locations ?? undefined}
             />

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { type LucideIcon } from "lucide-react";
+import { Illustration } from "@/components/shared/illustration";
 import { cn } from "@/lib/utils";
 
 interface Tag {
@@ -11,25 +13,39 @@ interface Props {
   title: string;
   description?: string;
   imageUrl?: string | null;
+  /** Shown as a colorful placeholder illustration when imageUrl is absent,
+   *  so every card keeps the same image-on-top shape instead of some
+   *  cards silently going image-less. */
+  fallbackIcon: LucideIcon;
   tags?: Tag[];
   meta?: string;
   className?: string;
 }
 
-// Shared card shape for News, Events, and Campus Info list/grid views.
-export function ContentCard({ href, title, description, imageUrl, tags, meta, className }: Props) {
+// Shared card shape for News, Events, Clubs, Deals, and Campus Info
+// list/grid views — image on top, title and description beneath.
+export function ContentCard({ href, title, description, imageUrl, fallbackIcon, tags, meta, className }: Props) {
   return (
     <Link
       href={href}
       className={cn(
-        "flex flex-col gap-2 rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-primary",
+        "group flex flex-col gap-2 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-primary",
         className
       )}
     >
-      {imageUrl && (
-        // eslint-disable-next-line @next/next/no-img-element -- external Supabase Storage URL, not a static asset
-        <img src={imageUrl} alt="" className="h-32 w-full rounded-lg object-cover" loading="lazy" />
-      )}
+      <div className="-mx-4 -mt-4 h-32 w-[calc(100%+2rem)] overflow-hidden">
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- external Supabase Storage URL, not a static asset
+          <img
+            src={imageUrl}
+            alt=""
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <Illustration icon={fallbackIcon} className="h-full w-full transition-transform duration-300 group-hover:scale-105" />
+        )}
+      </div>
       <h3 className="font-bold leading-snug">{title}</h3>
       {description && <p className="line-clamp-2 text-sm text-muted-foreground">{description}</p>}
       {tags && tags.length > 0 && (
