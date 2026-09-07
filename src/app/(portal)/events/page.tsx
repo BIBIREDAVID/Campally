@@ -1,6 +1,7 @@
 import { CalendarDays } from "lucide-react";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { listPublishedEvents } from "@/lib/queries/events";
+import { listFaculties } from "@/lib/queries/academic";
 import { EventFilters } from "@/components/events/event-filters";
 import { ContentCard } from "@/components/shared/content-card";
 import { FeaturedCard } from "@/components/shared/featured-card";
@@ -10,21 +11,24 @@ import { EVENT_CATEGORY_LABELS, type EventCategory } from "@/types/domain";
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ when?: string; category?: string }>;
+  searchParams: Promise<{ when?: string; category?: string; faculty?: string }>;
 }) {
   const user = await getCurrentUser();
 
-  const { when, category } = await searchParams;
+  const { when, category, faculty } = await searchParams;
   const activeWhen = (when as "today" | "week" | "upcoming") || "upcoming";
-  const { data: events } = await listPublishedEvents(
-    { when: activeWhen, category: category as EventCategory | undefined },
-    user?.profile.id
-  );
+  const [{ data: events }, faculties] = await Promise.all([
+    listPublishedEvents(
+      { when: activeWhen, category: category as EventCategory | undefined, facultyId: faculty },
+      user?.profile.id
+    ),
+    listFaculties(),
+  ]);
 
   // The soonest event in the current filter gets the featured treatment —
   // only on the default "Upcoming" view with no category filter, so a
   // filtered/narrowed list reads as a plain grid, not a demoted feature.
-  const showFeatured = activeWhen === "upcoming" && !category && events.length > 0;
+  const showFeatured = activeWhen === "upcoming" && !category && !faculty && events.length > 0;
   const [featured, ...rest] = showFeatured ? events : [undefined, ...events];
 
   return (
@@ -42,6 +46,7 @@ export default async function EventsPage({
             {
               label: new Date(featured.start_at).toLocaleDateString(undefined, { dateStyle: "medium" }),
             },
+            ...(!featured.club_id ? [{ label: "Official" }] : []),
             ...(featured.capacity && (featured.rsvp_count ?? 0) >= featured.capacity
               ? [{ label: "Full", variant: "urgent" as const }]
               : []),
@@ -49,7 +54,7 @@ export default async function EventsPage({
         />
       )}
 
-      <EventFilters activeWhen={activeWhen} activeCategory={category} />
+      <EventFilters activeWhen={activeWhen} activeCategory={category} activeFaculty={faculty} faculties={faculties} />
 
       {events.length === 0 ? (
         <EmptyState
@@ -70,6 +75,7 @@ export default async function EventsPage({
                 description={e.description}
                 imageUrl={e.cover_image_url}
                 fallbackIcon={CalendarDays}
+                official={!e.club_id}
                 tags={[
                   { label: EVENT_CATEGORY_LABELS[e.category] },
                   ...(isFull ? [{ label: "Full", variant: "urgent" as const }] : []),

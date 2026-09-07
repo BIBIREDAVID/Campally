@@ -11,6 +11,8 @@ const exploreLinks = [
 const unionLinks = [
   { href: "/campus", label: "Campus Information" },
   { href: "/cases/new", label: "Submit a Case" },
+  { href: "/track", label: "Track a Case" },
+  { href: "/polls", label: "Polls" },
   { href: "/search", label: "Search" },
 ];
 

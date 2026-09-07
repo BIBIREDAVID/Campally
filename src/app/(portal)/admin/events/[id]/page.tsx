@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
 import { getEventForEdit, listEventRsvps } from "@/lib/queries/events";
+import { listFaculties } from "@/lib/queries/academic";
 import { EventForm } from "@/components/events/event-form";
 import { CancelEventButton } from "@/components/events/cancel-event-button";
 import { EventStatusBadge } from "@/components/events/event-badges";
@@ -13,7 +14,11 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
   if (!user) redirect("/login");
   if (!hasPermission(user, "events.manage")) redirect("/");
 
-  const [{ data: event }, { data: rsvps }] = await Promise.all([getEventForEdit(id), listEventRsvps(id)]);
+  const [{ data: event }, { data: rsvps }, faculties] = await Promise.all([
+    getEventForEdit(id),
+    listEventRsvps(id),
+    listFaculties(),
+  ]);
   if (!event) notFound();
 
   return (
@@ -30,7 +35,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
         {event.status !== "cancelled" && <CancelEventButton id={id} />}
       </div>
 
-      <EventForm existing={event} />
+      <EventForm existing={event} faculties={faculties} />
 
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
         <h2 className="mb-3 text-sm font-bold text-muted-foreground">

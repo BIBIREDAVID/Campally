@@ -44,7 +44,9 @@ export async function updateSession(request: NextRequest) {
     path.startsWith('/campus') ||
     path.startsWith('/deals') ||
     path.startsWith('/search') ||
-    path.startsWith('/more')
+    path.startsWith('/more') ||
+    path.startsWith('/track') ||
+    path.startsWith('/polls')
 
   const isPublic =
     isAuthRoute ||

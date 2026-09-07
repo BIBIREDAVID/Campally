@@ -232,6 +232,8 @@ export interface EventRecord {
   contact_person: string | null;
   capacity: number | null;
   rsvp_enabled: boolean;
+  faculty_id: string | null;
+  club_id: string | null;
   author_id: string;
   last_edited_by: string | null;
   created_at: string;
@@ -561,4 +563,32 @@ export interface Announcement {
   updated_at: string;
   faculties?: { name: string } | null;
   author?: { first_name: string; last_name: string } | null;
+}
+
+export type PollStatus = "draft" | "published" | "closed";
+
+export interface PollOption {
+  id: string;
+  poll_id: string;
+  label: string;
+  position: number;
+}
+
+export interface Poll {
+  id: string;
+  tenant_id: string;
+  question: string;
+  description: string | null;
+  status: PollStatus;
+  closes_at: string | null;
+  author_id: string;
+  created_at: string;
+  updated_at: string;
+  poll_options?: PollOption[];
+}
+
+export interface PollResult {
+  option_id: string;
+  label: string;
+  votes: number;
 }

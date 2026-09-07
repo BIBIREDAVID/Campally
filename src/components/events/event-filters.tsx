@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EVENT_CATEGORIES, EVENT_CATEGORY_LABELS } from "@/types/domain";
+import { EVENT_CATEGORIES, EVENT_CATEGORY_LABELS, type Faculty } from "@/types/domain";
 
 const WHEN_OPTIONS = [
   { value: "today", label: "Today" },
@@ -20,9 +20,11 @@ const WHEN_OPTIONS = [
 interface Props {
   activeWhen: string;
   activeCategory?: string;
+  activeFaculty?: string;
+  faculties?: Faculty[];
 }
 
-export function EventFilters({ activeWhen, activeCategory }: Props) {
+export function EventFilters({ activeWhen, activeCategory, activeFaculty, faculties = [] }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -58,6 +60,26 @@ export function EventFilters({ activeWhen, activeCategory }: Props) {
           ))}
         </SelectContent>
       </Select>
+
+      {faculties.length > 0 && (
+        <Select
+          items={[{ value: "all", label: "All faculties" }, ...faculties.map((f) => ({ value: f.id, label: f.name }))]}
+          value={activeFaculty ?? "all"}
+          onValueChange={(v) => updateParam("faculty", v)}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All faculties</SelectItem>
+            {faculties.map((f) => (
+              <SelectItem key={f.id} value={f.id}>
+                {f.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
   );
 }

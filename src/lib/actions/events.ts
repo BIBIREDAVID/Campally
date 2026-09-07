@@ -17,6 +17,7 @@ export interface EventInput {
   capacity?: number | null;
   rsvpEnabled: boolean;
   coverImageUrl?: string | null;
+  facultyId?: string | null;
 }
 
 function requireEventsManage(user: Awaited<ReturnType<typeof getCurrentUser>>) {
@@ -38,6 +39,7 @@ function toRow(input: EventInput, status: EventStatus) {
     capacity: input.capacity ?? null,
     rsvp_enabled: input.rsvpEnabled,
     cover_image_url: input.coverImageUrl || null,
+    faculty_id: input.facultyId || null,
     status,
   };
 }

@@ -15,10 +15,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createEventAction, updateEventAction, uploadEventCoverAction } from "@/lib/actions/events";
-import { EVENT_CATEGORIES, EVENT_CATEGORY_LABELS, type EventCategory, type EventRecord } from "@/types/domain";
+import { EVENT_CATEGORIES, EVENT_CATEGORY_LABELS, type EventCategory, type EventRecord, type Faculty } from "@/types/domain";
 
 interface Props {
   existing?: EventRecord;
+  faculties?: Faculty[];
 }
 
 function toLocalDatetimeInput(iso: string | null): string {
@@ -28,10 +29,11 @@ function toLocalDatetimeInput(iso: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function EventForm({ existing }: Props) {
+export function EventForm({ existing, faculties = [] }: Props) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(existing?.title ?? "");
+  const [facultyId, setFacultyId] = useState(existing?.faculty_id ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
   const [category, setCategory] = useState<EventCategory>(existing?.category ?? "social");
   const [startAt, setStartAt] = useState(toLocalDatetimeInput(existing?.start_at ?? null));
@@ -87,6 +89,7 @@ export function EventForm({ existing }: Props) {
       capacity: capacity ? Number(capacity) : null,
       rsvpEnabled,
       coverImageUrl,
+      facultyId: facultyId || null,
     };
 
     const status = publish ? ("published" as const) : ("draft" as const);
@@ -162,6 +165,29 @@ export function EventForm({ existing }: Props) {
           </SelectContent>
         </Select>
       </div>
+
+      {faculties.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <Label>Faculty (optional)</Label>
+          <Select
+            items={[{ value: "none", label: "Campus-wide" }, ...faculties.map((f) => ({ value: f.id, label: f.name }))]}
+            value={facultyId || "none"}
+            onValueChange={(v) => setFacultyId(v === "none" ? "" : (v ?? ""))}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Campus-wide" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Campus-wide</SelectItem>
+              {faculties.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {f.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">

@@ -34,18 +34,28 @@ export default async function DealsPage({
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {deals.map((d) => (
-            <ContentCard
-              key={d.id}
-              href={`/deals/${d.id}`}
-              title={d.merchant_name}
-              description={d.discount_summary}
-              imageUrl={d.logo_url}
-              fallbackIcon={Tag}
-              tags={[{ label: DEAL_CATEGORY_LABELS[d.category] }]}
-              meta={d.locations ?? undefined}
-            />
-          ))}
+          {deals.map((d) => {
+            const daysToExpiry = d.expires_at
+              ? Math.ceil((new Date(d.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+              : null;
+            return (
+              <ContentCard
+                key={d.id}
+                href={`/deals/${d.id}`}
+                title={d.merchant_name}
+                description={d.discount_summary}
+                imageUrl={d.logo_url}
+                fallbackIcon={Tag}
+                tags={[
+                  { label: DEAL_CATEGORY_LABELS[d.category] },
+                  ...(daysToExpiry !== null && daysToExpiry <= 7
+                    ? [{ label: daysToExpiry <= 0 ? "Expired" : `Expires in ${daysToExpiry}d`, variant: "urgent" as const }]
+                    : []),
+                ]}
+                meta={d.locations ?? undefined}
+              />
+            );
+          })}
         </div>
       )}
     </div>

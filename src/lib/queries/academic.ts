@@ -1,6 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import type { AcademicLevel, Department, Faculty, Programme } from "@/types/domain";
 
+export async function listFaculties() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("faculties").select("id, name").order("name");
+  return (data ?? []) as Faculty[];
+}
+
 export async function getAcademicStructure() {
   const supabase = await createClient();
 

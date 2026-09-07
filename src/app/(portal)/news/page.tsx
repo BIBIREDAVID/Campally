@@ -35,7 +35,10 @@ export default async function NewsPage({
           description={featured.body}
           imageUrl={featured.cover_image_url}
           eyebrow={ANNOUNCEMENT_CATEGORY_LABELS[featured.category]}
-          tags={featured.priority === "urgent" ? [{ label: "Urgent", variant: "urgent" }] : undefined}
+          tags={[
+            { label: "Official" },
+            ...(featured.priority === "urgent" ? [{ label: "Urgent", variant: "urgent" as const }] : []),
+          ]}
         />
       )}
 
@@ -61,6 +64,7 @@ export default async function NewsPage({
               description={a.body}
               imageUrl={a.cover_image_url}
               fallbackIcon={Megaphone}
+              official
               tags={[
                 { label: ANNOUNCEMENT_CATEGORY_LABELS[a.category] },
                 ...(a.priority === "urgent" ? [{ label: "Urgent", variant: "urgent" as const }] : []),

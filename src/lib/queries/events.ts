@@ -30,6 +30,7 @@ async function withRsvpMeta(events: EventRecord[], viewerId?: string) {
 export interface EventFilters {
   category?: EventCategory;
   when?: "today" | "week" | "upcoming";
+  facultyId?: string;
 }
 
 export async function listPublishedEvents(filters: EventFilters = {}, viewerId?: string) {
@@ -37,6 +38,7 @@ export async function listPublishedEvents(filters: EventFilters = {}, viewerId?:
   let query = supabase.from("events").select("*").eq("status", "published").order("start_at", { ascending: true });
 
   if (filters.category) query = query.eq("category", filters.category);
+  if (filters.facultyId) query = query.eq("faculty_id", filters.facultyId);
 
   const now = new Date();
   if (filters.when === "today") {

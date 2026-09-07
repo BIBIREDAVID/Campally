@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { submitCaseAction } from "@/lib/actions/cases";
 import { CaseAttachments } from "@/components/cases/case-attachments";
+import { enqueueCase } from "@/lib/offline-case-queue";
 import type { CaseCategory } from "@/types/domain";
 
 export function SubmitCaseForm({ categories }: { categories: CaseCategory[] }) {
@@ -29,6 +30,7 @@ export function SubmitCaseForm({ categories }: { categories: CaseCategory[] }) {
   const [confirmation, setConfirmation] = useState<{ referenceNumber: string; caseId: string } | null>(
     null
   );
+  const [queued, setQueued] = useState(false);
 
   const selectedCategory = categories.find((c) => c.id === categoryId);
 
@@ -37,13 +39,36 @@ export function SubmitCaseForm({ categories }: { categories: CaseCategory[] }) {
     setSubmitting(true);
     setError(null);
 
-    const result = await submitCaseAction({
+    const caseInput = {
       categoryId,
       title,
       description,
       location,
       isAnonymous: isAnonymous && !!selectedCategory?.allow_anonymous,
-    });
+    };
+
+    // No connectivity: never even attempt the network call — queue
+    // immediately so the student gets an honest "queued" state instead of
+    // watching a submit button hang.
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      enqueueCase(caseInput);
+      setSubmitting(false);
+      setQueued(true);
+      return;
+    }
+
+    let result;
+    try {
+      result = await submitCaseAction(caseInput);
+    } catch {
+      // A network-level failure (not a validation error from the server) —
+      // most likely a flaky or just-dropped connection. Queue rather than
+      // show a dead-end error the student can't act on.
+      enqueueCase(caseInput);
+      setSubmitting(false);
+      setQueued(true);
+      return;
+    }
     setSubmitting(false);
 
     if (result.error) {
@@ -51,6 +76,21 @@ export function SubmitCaseForm({ categories }: { categories: CaseCategory[] }) {
       return;
     }
     setConfirmation({ referenceNumber: result.referenceNumber!, caseId: result.caseId! });
+  }
+
+  if (queued) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-10 text-center shadow-sm">
+        <h2 className="text-lg font-bold">Case queued</h2>
+        <p className="text-sm text-muted-foreground">
+          You&apos;re offline, so this case hasn&apos;t been submitted yet — it&apos;s saved on this device and
+          will send automatically the next time you&apos;re back online.
+        </p>
+        <Button className="mt-2" variant="outline" onClick={() => router.push("/cases")}>
+          Back to cases
+        </Button>
+      </div>
+    );
   }
 
   if (confirmation) {

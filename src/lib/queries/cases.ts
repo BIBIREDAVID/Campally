@@ -138,6 +138,38 @@ export async function listCaseQueue(filters: CaseQueueFilters = {}, viewer: Curr
   return { data: cases, error };
 }
 
+export interface TrackedCase {
+  reference_number: string;
+  title: string;
+  status: string;
+  priority: string;
+  category_name: string;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+}
+
+export interface TrackedCaseHistoryEntry {
+  field_changed: string;
+  new_value: string;
+  changed_at: string;
+}
+
+export async function trackCaseByReference(referenceNumber: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .rpc("track_case_by_reference", { p_reference_number: referenceNumber })
+    .maybeSingle();
+
+  if (!data) return { data: null, history: [] as TrackedCaseHistoryEntry[], error };
+
+  const { data: history } = await supabase.rpc("track_case_history", {
+    p_reference_number: referenceNumber,
+  });
+
+  return { data: data as TrackedCase, history: (history ?? []) as TrackedCaseHistoryEntry[], error };
+}
+
 export function isOverdue(c: Pick<CaseRecord, "status" | "updated_at">): boolean {
   if (!OPEN_CASE_STATUSES.includes(c.status)) return false;
   const hoursSinceUpdate = (Date.now() - new Date(c.updated_at).getTime()) / (1000 * 60 * 60);

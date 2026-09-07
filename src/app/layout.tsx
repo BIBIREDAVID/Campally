@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/shared/sw-register";
 import { ThemeProvider } from "@/components/shared/theme-provider";
+import { OfflineQueueSync } from "@/components/cases/offline-queue-sync";
 import "./globals.css";
 
 const inter = Inter({
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
           <Toaster />
           <ServiceWorkerRegister />
+          <OfflineQueueSync />
         </ThemeProvider>
       </body>
     </html>

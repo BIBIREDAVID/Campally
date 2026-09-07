@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Megaphone, BookOpen, User, LogOut, Users, Tag, LogIn, UserPlus } from "lucide-react";
+import { ChevronRight, Megaphone, BookOpen, User, LogOut, Users, Tag, LogIn, UserPlus, Vote, Search } from "lucide-react";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { logoutAction } from "@/lib/actions/auth";
 import { Card } from "@/components/ui/card";
@@ -8,7 +8,9 @@ const contentLinks = [
   { href: "/clubs", label: "Clubs & Societies", description: "Discover and follow recognised clubs", icon: Users },
   { href: "/deals", label: "Student Deals", description: "Discounts and benefits near campus", icon: Tag },
   { href: "/news", label: "News", description: "Student Union announcements and updates", icon: Megaphone },
+  { href: "/polls", label: "Polls", description: "Have your say on what the Union asks", icon: Vote },
   { href: "/campus", label: "Campus Information", description: "Handbook, contacts, and FAQs", icon: BookOpen },
+  { href: "/track", label: "Track a Case", description: "Check a case's status by reference number", icon: Search },
 ];
 
 const profileLink = { href: "/profile", label: "Profile", description: "Your details and account", icon: User };

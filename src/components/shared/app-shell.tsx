@@ -19,6 +19,7 @@ import {
   GraduationCap,
   Search,
   BarChart3,
+  Vote,
 } from "lucide-react";
 import { logoutAction } from "@/lib/actions/auth";
 import { LinkButton } from "@/components/ui/link-button";
@@ -76,6 +77,7 @@ const staffNav = [
   { href: "/admin/clubs", label: "Clubs", icon: Users },
   { href: "/admin/deals", label: "Deals", icon: Tag },
   { href: "/admin/news", label: "News", icon: Megaphone },
+  { href: "/admin/polls", label: "Polls", icon: Vote },
   { href: "/admin/campus", label: "Campus", icon: BookOpen },
   { href: "/admin/students", label: "Students", icon: GraduationCap },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },

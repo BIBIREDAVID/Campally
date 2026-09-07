@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { type LucideIcon } from "lucide-react";
+import { BadgeCheck, type LucideIcon } from "lucide-react";
 import { Illustration } from "@/components/shared/illustration";
 import { cn } from "@/lib/utils";
 
@@ -20,11 +20,14 @@ interface Props {
   tags?: Tag[];
   meta?: string;
   className?: string;
+  /** Marks content authored directly by the Union (News, Events) rather
+   *  than a club or other source — helps students trust official channels. */
+  official?: boolean;
 }
 
 // Shared card shape for News, Events, Clubs, Deals, and Campus Info
 // list/grid views — image on top, title and description beneath.
-export function ContentCard({ href, title, description, imageUrl, fallbackIcon, tags, meta, className }: Props) {
+export function ContentCard({ href, title, description, imageUrl, fallbackIcon, tags, meta, className, official }: Props) {
   return (
     <Link
       href={href}
@@ -46,7 +49,16 @@ export function ContentCard({ href, title, description, imageUrl, fallbackIcon, 
           <Illustration icon={fallbackIcon} className="h-full w-full transition-transform duration-300 group-hover:scale-105" />
         )}
       </div>
-      <h3 className="font-bold leading-snug">{title}</h3>
+      <h3 className="flex items-center gap-1 font-bold leading-snug">
+        <span className="line-clamp-1">{title}</span>
+        {official && (
+          <BadgeCheck
+            size={15}
+            className="shrink-0 text-primary"
+            aria-label="Official Student Union content"
+          />
+        )}
+      </h3>
       {description && <p className="line-clamp-2 text-sm text-muted-foreground">{description}</p>}
       {tags && tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
