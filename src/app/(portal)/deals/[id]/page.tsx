@@ -1,17 +1,17 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Phone, Tag, ExternalLink } from "lucide-react";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { getDealDetail } from "@/lib/queries/deals";
 import { SaveDealButton } from "@/components/deals/save-deal-button";
+import { LinkButton } from "@/components/ui/link-button";
 import { DEAL_CATEGORY_LABELS } from "@/types/domain";
 
 export default async function DealDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
 
-  const { data: deal } = await getDealDetail(id, user.profile.id);
+  const { data: deal } = await getDealDetail(id, user?.profile.id);
   if (!deal || deal.status === "draft") notFound();
 
   return (
@@ -79,7 +79,13 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
 
         {deal.terms && <p className="text-xs text-muted-foreground">{deal.terms}</p>}
 
-        <SaveDealButton dealId={id} initialSaved={!!deal.viewer_has_saved} />
+        {user ? (
+          <SaveDealButton dealId={id} initialSaved={!!deal.viewer_has_saved} />
+        ) : (
+          <LinkButton href="/signup" className="w-fit">
+            Sign up to save
+          </LinkButton>
+        )}
       </div>
     </div>
   );

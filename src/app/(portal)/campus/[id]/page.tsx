@@ -1,14 +1,11 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { getCurrentUser } from "@/lib/queries/current-user";
 import { getCampusContentDetail } from "@/lib/queries/campus";
 import { CAMPUS_CATEGORY_LABELS } from "@/types/domain";
 
 export default async function CampusContentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
 
   const { data: article } = await getCampusContentDetail(id);
   if (!article || article.status !== "published") notFound();

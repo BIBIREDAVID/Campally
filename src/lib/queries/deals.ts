@@ -63,7 +63,9 @@ export async function getDealDetail(id: string, viewerId?: string) {
   const { data, error } = await supabase.from("deals").select("*").eq("id", id).single();
   if (!data) return { data: null, error };
 
-  if (viewerId) await supabase.rpc("increment_deal_views", { deal_id: id });
+  // Counts anonymous browsing too — public visitors are a real audience
+  // for merchant engagement numbers, not just logged-in students.
+  await supabase.rpc("increment_deal_views", { deal_id: id });
 
   const [withMeta] = await withViewerMeta([data as DealRecord], viewerId);
   return { data: withMeta, error };

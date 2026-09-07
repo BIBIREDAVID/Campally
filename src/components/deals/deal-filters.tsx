@@ -23,9 +23,10 @@ interface Props {
   activeCategory?: string;
   initialQuery?: string;
   activeSaved: string;
+  showSavedFilter?: boolean;
 }
 
-export function DealFilters({ activeCategory, initialQuery, activeSaved }: Props) {
+export function DealFilters({ activeCategory, initialQuery, activeSaved, showSavedFilter = true }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -51,7 +52,11 @@ export function DealFilters({ activeCategory, initialQuery, activeSaved }: Props
       </form>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <PillTabs paramKey="saved" options={SAVED_OPTIONS} activeValue={activeSaved} firstIsDefault />
+        {showSavedFilter ? (
+          <PillTabs paramKey="saved" options={SAVED_OPTIONS} activeValue={activeSaved} firstIsDefault />
+        ) : (
+          <span />
+        )}
 
         <Select
           items={[

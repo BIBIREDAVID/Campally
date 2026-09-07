@@ -1,8 +1,7 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Megaphone, CalendarDays, Users, BookOpen, Tag } from "lucide-react";
 import { getCurrentUser } from "@/lib/queries/current-user";
-import { globalSearch, type SearchResult } from "@/lib/queries/search";
+import { getDefaultTenantId, globalSearch, type SearchResult } from "@/lib/queries/search";
 import { SearchBar } from "@/components/shared/search-bar";
 
 const KIND_META: Record<SearchResult["kind"], { label: string; icon: typeof Megaphone }> = {
@@ -19,10 +18,13 @@ export default async function SearchPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
 
   const { q } = await searchParams;
-  const { data: results } = q ? await globalSearch(q, user.profile.tenant_id) : { data: [] };
+  let results: SearchResult[] = [];
+  if (q) {
+    const tenantId = user?.profile.tenant_id ?? (await getDefaultTenantId());
+    if (tenantId) results = (await globalSearch(q, tenantId)).data;
+  }
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">

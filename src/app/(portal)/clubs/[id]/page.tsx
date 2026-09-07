@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Calendar, AtSign, Mail, MessageCircle, Phone, Users, Globe, Settings } from "lucide-react";
 import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
@@ -11,15 +11,14 @@ import { CLUB_CATEGORY_LABELS } from "@/types/domain";
 export default async function ClubDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
 
-  const { data: club } = await getClubDetail(id, user.profile.id);
+  const { data: club } = await getClubDetail(id, user?.profile.id);
   if (!club || club.status === "draft") notFound();
 
   const [{ data: upcomingEvents }, { data: announcements }, canManage] = await Promise.all([
     listClubUpcomingEvents(id),
     listClubAnnouncements(id),
-    hasPermission(user, "clubs.manage") ? Promise.resolve(true) : isClubAdmin(user.profile.id, id),
+    !user ? Promise.resolve(false) : hasPermission(user, "clubs.manage") ? Promise.resolve(true) : isClubAdmin(user.profile.id, id),
   ]);
 
   return (
@@ -86,8 +85,14 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <FollowButton clubId={id} initialFollowing={!!club.viewer_follows} />
-          <MembershipButton clubId={id} membershipMode={club.membership_mode} initialStatus={club.viewer_membership_status ?? null} />
+          {user ? (
+            <>
+              <FollowButton clubId={id} initialFollowing={!!club.viewer_follows} />
+              <MembershipButton clubId={id} membershipMode={club.membership_mode} initialStatus={club.viewer_membership_status ?? null} />
+            </>
+          ) : (
+            <LinkButton href="/signup">Sign up to follow & join</LinkButton>
+          )}
         </div>
       </div>
 

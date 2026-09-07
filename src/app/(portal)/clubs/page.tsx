@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { listPublishedClubs } from "@/lib/queries/clubs";
 import { ClubFilters } from "@/components/clubs/club-filters";
@@ -11,12 +10,11 @@ export default async function ClubsPage({
   searchParams: Promise<{ category?: string; q?: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
 
   const { category, q } = await searchParams;
   const { data: clubs } = await listPublishedClubs(
     { category: category as ClubCategory | undefined, q },
-    user.profile.id
+    user?.profile.id
   );
 
   return (

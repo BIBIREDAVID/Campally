@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/queries/current-user";
 import { listPublishedAnnouncements } from "@/lib/queries/news";
 import { PillTabs } from "@/components/shared/pill-tabs";
 import { ContentCard } from "@/components/shared/content-card";
@@ -11,9 +9,6 @@ export default async function NewsPage({
 }: {
   searchParams: Promise<{ category?: string }>;
 }) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
   const { category } = await searchParams;
   const { data: announcements } = await listPublishedAnnouncements(
     undefined,

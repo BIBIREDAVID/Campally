@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/queries/current-user";
 import { listPublishedCampusContent } from "@/lib/queries/campus";
 import { CampusSearch } from "@/components/campus/campus-search";
 import { PillTabs } from "@/components/shared/pill-tabs";
@@ -11,9 +9,6 @@ export default async function CampusPage({
 }: {
   searchParams: Promise<{ q?: string; category?: string }>;
 }) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
   const { q, category } = await searchParams;
   const { data: articles } = await listPublishedCampusContent(q, category as CampusContentCategory | undefined);
 

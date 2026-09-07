@@ -21,7 +21,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { logoutAction } from "@/lib/actions/auth";
-import { Button } from "@/components/ui/button";
+import { LinkButton } from "@/components/ui/link-button";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -161,12 +161,12 @@ export function AppShell({ children, isAuthenticated, isAdmin, displayName, unre
         ) : (
           <div className="mt-auto flex flex-col gap-2">
             <p className="px-1 text-xs text-muted-foreground">Sign up to submit cases, RSVP, and more.</p>
-            <Button asChild size="sm" className="w-full">
-              <Link href="/signup">Sign up</Link>
-            </Button>
-            <Button asChild variant="outline" size="sm" className="w-full">
-              <Link href="/login">Log in</Link>
-            </Button>
+            <LinkButton href="/signup" size="sm" className="w-full">
+              Sign up
+            </LinkButton>
+            <LinkButton href="/login" variant="outline" size="sm" className="w-full">
+              Log in
+            </LinkButton>
           </div>
         )}
       </aside>

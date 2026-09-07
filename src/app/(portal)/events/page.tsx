@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { listPublishedEvents } from "@/lib/queries/events";
 import { EventFilters } from "@/components/events/event-filters";
@@ -12,13 +11,12 @@ export default async function EventsPage({
   searchParams: Promise<{ when?: string; category?: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
 
   const { when, category } = await searchParams;
   const activeWhen = (when as "today" | "week" | "upcoming") || "upcoming";
   const { data: events } = await listPublishedEvents(
     { when: activeWhen, category: category as EventCategory | undefined },
-    user.profile.id
+    user?.profile.id
   );
 
   // The soonest event in the current filter gets the featured treatment —

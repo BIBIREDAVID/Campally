@@ -43,7 +43,8 @@ export async function updateSession(request: NextRequest) {
     path.startsWith('/clubs') ||
     path.startsWith('/campus') ||
     path.startsWith('/deals') ||
-    path.startsWith('/search')
+    path.startsWith('/search') ||
+    path.startsWith('/more')
 
   const isPublic =
     isAuthRoute ||

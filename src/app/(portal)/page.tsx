@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Plus, Megaphone } from "lucide-react";
+import { Plus, Megaphone, UserPlus } from "lucide-react";
 import { getCurrentUser, isAdminUser } from "@/lib/queries/current-user";
 import { listMyCases } from "@/lib/queries/cases";
 import { getUrgentAnnouncement, listPublishedAnnouncements } from "@/lib/queries/news";
@@ -13,31 +13,33 @@ import { Card } from "@/components/ui/card";
 
 export default async function HomePage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
   if (isAdminUser(user)) redirect("/admin");
 
   const [
-    { data: cases },
+    caseData,
     urgentAnnouncement,
     { data: latestAnnouncements },
     { data: todaysEvents },
-    { data: followedClubs },
+    followedClubsData,
     { data: latestDeals },
   ] = await Promise.all([
-    listMyCases(user.profile.id),
+    user ? listMyCases(user.profile.id) : Promise.resolve({ data: [] }),
     getUrgentAnnouncement(),
     listPublishedAnnouncements(3),
-    listPublishedEvents({ when: "today" }, user.profile.id),
-    listFollowedClubs(user.profile.id),
-    listPublishedDeals({}, user.profile.id),
+    listPublishedEvents({ when: "today" }, user?.profile.id),
+    user ? listFollowedClubs(user.profile.id) : Promise.resolve({ data: [] }),
+    listPublishedDeals({}, user?.profile.id),
   ]);
-  const openCases = cases.filter((c) => !["resolved", "closed", "rejected"].includes(c.status));
+  const openCases = caseData.data.filter((c) => !["resolved", "closed", "rejected"].includes(c.status));
+  const followedClubs = followedClubsData.data;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold">Hi, {user.profile.first_name} 👋</h1>
-        <p className="text-sm text-muted-foreground">Here&apos;s what&apos;s going on.</p>
+        <h1 className="text-xl font-bold">{user ? `Hi, ${user.profile.first_name} 👋` : "Welcome to Union"}</h1>
+        <p className="text-sm text-muted-foreground">
+          {user ? "Here's what's going on." : "Your Student Union, in your pocket."}
+        </p>
       </div>
 
       {urgentAnnouncement && (
@@ -53,36 +55,53 @@ export default async function HomePage() {
         </Link>
       )}
 
-      <Card className="flex flex-col gap-4 p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold">Your open cases</h2>
-          <Link href="/cases" className="text-xs font-semibold text-primary">
-            See all
-          </Link>
-        </div>
+      {user ? (
+        <Card className="flex flex-col gap-4 p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-bold">Your open cases</h2>
+            <Link href="/cases" className="text-xs font-semibold text-primary">
+              See all
+            </Link>
+          </div>
 
-        {openCases.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No open cases right now.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {openCases.slice(0, 3).map((c) => (
-              <li key={c.id}>
-                <Link
-                  href={`/cases/${c.id}`}
-                  className="flex items-center justify-between rounded-lg border border-border p-3 hover:border-primary"
-                >
-                  <span className="text-sm font-medium">{c.title}</span>
-                  <StatusBadge status={c.status} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+          {openCases.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No open cases right now.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {openCases.slice(0, 3).map((c) => (
+                <li key={c.id}>
+                  <Link
+                    href={`/cases/${c.id}`}
+                    className="flex items-center justify-between rounded-lg border border-border p-3 hover:border-primary"
+                  >
+                    <span className="text-sm font-medium">{c.title}</span>
+                    <StatusBadge status={c.status} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
 
-        <LinkButton href="/cases/new" className="w-fit gap-2">
-          <Plus size={16} /> Submit a Case
-        </LinkButton>
-      </Card>
+          <LinkButton href="/cases/new" className="w-fit gap-2">
+            <Plus size={16} /> Submit a Case
+          </LinkButton>
+        </Card>
+      ) : (
+        <Card className="flex flex-col gap-3 p-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <UserPlus size={18} />
+            </span>
+            <div>
+              <h2 className="text-sm font-bold">Have an issue on campus?</h2>
+              <p className="text-xs text-muted-foreground">Sign up to submit and track a case with the Student Union.</p>
+            </div>
+          </div>
+          <LinkButton href="/signup" className="w-fit">
+            Sign up
+          </LinkButton>
+        </Card>
+      )}
 
       <Card className="flex flex-col gap-3 p-5">
         <div className="flex items-center justify-between">
@@ -139,7 +158,7 @@ export default async function HomePage() {
         )}
       </Card>
 
-      {followedClubs.length > 0 && (
+      {user && followedClubs.length > 0 && (
         <Card className="flex flex-col gap-3 p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold">Clubs you follow</h2>
@@ -188,6 +207,18 @@ export default async function HomePage() {
           </ul>
         )}
       </Card>
+
+      {!user && (
+        <Card className="flex flex-col items-center gap-2 p-6 text-center">
+          <h2 className="text-sm font-bold">Get the full Union experience</h2>
+          <p className="max-w-xs text-xs text-muted-foreground">
+            Sign up with your school email to RSVP to events, follow clubs, save deals, and submit cases to the Student Union.
+          </p>
+          <LinkButton href="/signup" className="mt-1">
+            Sign up free
+          </LinkButton>
+        </Card>
+      )}
     </div>
   );
 }

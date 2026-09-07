@@ -1,15 +1,12 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { getCurrentUser } from "@/lib/queries/current-user";
 import { getAnnouncementDetail } from "@/lib/queries/news";
 import { UrgentBadge } from "@/components/news/announcement-badges";
 import { ANNOUNCEMENT_CATEGORY_LABELS } from "@/types/domain";
 
 export default async function AnnouncementDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
 
   const { data: announcement } = await getAnnouncementDetail(id);
   if (!announcement) notFound();

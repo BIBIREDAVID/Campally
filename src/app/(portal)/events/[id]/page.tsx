@@ -1,17 +1,17 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Calendar, MapPin, User, Users } from "lucide-react";
 import { getCurrentUser } from "@/lib/queries/current-user";
 import { getEventDetail } from "@/lib/queries/events";
 import { RsvpButton } from "@/components/events/rsvp-button";
+import { LinkButton } from "@/components/ui/link-button";
 import { EVENT_CATEGORY_LABELS } from "@/types/domain";
 
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
 
-  const { data: event } = await getEventDetail(id, user.profile.id);
+  const { data: event } = await getEventDetail(id, user?.profile.id);
   if (!event || event.status === "draft") notFound();
 
   const isFull = !!event.capacity && (event.rsvp_count ?? 0) >= event.capacity;
@@ -73,7 +73,13 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         )}
 
         {event.status === "published" && event.rsvp_enabled && (
-          <RsvpButton eventId={id} initialRsvped={!!event.viewer_has_rsvped} isFull={isFull} />
+          user ? (
+            <RsvpButton eventId={id} initialRsvped={!!event.viewer_has_rsvped} isFull={isFull} />
+          ) : (
+            <LinkButton href="/signup" className="w-fit">
+              Sign up to RSVP
+            </LinkButton>
+          )
         )}
       </div>
     </div>
