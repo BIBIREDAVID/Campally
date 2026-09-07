@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { checkIpRateLimit } from "@/lib/rate-limit";
 import type { CurrentUser } from "@/lib/queries/current-user";
 import {
   OPEN_CASE_STATUSES,
@@ -156,6 +157,14 @@ export interface TrackedCaseHistoryEntry {
 }
 
 export async function trackCaseByReference(referenceNumber: string) {
+  // Reference numbers are a 6-character random string — public, unauthenticated,
+  // and guessable at volume. 15 lookups/minute per IP is generous for a real
+  // student checking their own case, tight enough to make brute-forcing useless.
+  const allowed = await checkIpRateLimit("track_case", 15, 60);
+  if (!allowed) {
+    return { data: null, history: [] as TrackedCaseHistoryEntry[], error: null, rateLimited: true as const };
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .rpc("track_case_by_reference", { p_reference_number: referenceNumber })

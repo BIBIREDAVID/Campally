@@ -5,11 +5,16 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
 import type { PollStatus } from "@/types/domain";
 
+export interface PollOptionInput {
+  id?: string;
+  label: string;
+}
+
 export interface PollInput {
   question: string;
   description?: string | null;
   closesAt?: string | null;
-  options: string[];
+  options: PollOptionInput[];
 }
 
 function requirePollsManage(user: Awaited<ReturnType<typeof getCurrentUser>>) {
@@ -23,7 +28,7 @@ export async function createPollAction(input: PollInput, status: PollStatus) {
   const permError = requirePollsManage(user);
   if (permError) return { error: permError };
 
-  const options = input.options.map((o) => o.trim()).filter(Boolean);
+  const options = input.options.map((o) => o.label.trim()).filter(Boolean);
   if (!input.question.trim()) return { error: "A question is required." };
   if (options.length < 2) return { error: "Add at least two options." };
 
@@ -58,7 +63,7 @@ export async function updatePollAction(id: string, input: PollInput, status: Pol
   const permError = requirePollsManage(user);
   if (permError) return { error: permError };
 
-  const options = input.options.map((o) => o.trim()).filter(Boolean);
+  const options = input.options.map((o) => ({ ...o, label: o.label.trim() })).filter((o) => o.label);
   if (!input.question.trim()) return { error: "A question is required." };
   if (options.length < 2) return { error: "Add at least two options." };
 
@@ -75,20 +80,75 @@ export async function updatePollAction(id: string, input: PollInput, status: Pol
     .eq("id", id);
   if (error) return { error: error.message };
 
-  // Replace options wholesale — simplest correct approach for a poll that
-  // hasn't collected votes yet; once published, admins are expected to
-  // close and open a new poll rather than reshape a live one.
-  await supabase.from("poll_options").delete().eq("poll_id", id);
-  const { error: optError } = await supabase
-    .from("poll_options")
-    .insert(options.map((label, i) => ({ poll_id: id, label, position: i })));
-  if (optError) return { error: optError.message };
+  // Diff against existing options rather than delete-and-reinsert
+  // everything — a wholesale replace silently wiped votes (poll_votes
+  // cascades on poll_options delete) even when an admin was just fixing a
+  // typo. Existing options keep their id (and their votes); only options
+  // the admin actually removed lose their votes, which is the correct
+  // behaviour for a genuinely removed choice.
+  const { data: existing } = await supabase.from("poll_options").select("id").eq("poll_id", id);
+  const existingIds = new Set((existing ?? []).map((o) => o.id));
+  const keptIds = new Set(options.filter((o) => o.id).map((o) => o.id));
+
+  const removedIds = Array.from(existingIds).filter((eid) => !keptIds.has(eid));
+  if (removedIds.length > 0) {
+    await supabase.from("poll_options").delete().in("id", removedIds);
+  }
+
+  const toUpdate = options.filter((o) => o.id && existingIds.has(o.id));
+  for (const [i, o] of toUpdate.entries()) {
+    await supabase.from("poll_options").update({ label: o.label, position: i }).eq("id", o.id!);
+  }
+
+  const toInsert = options.filter((o) => !o.id || !existingIds.has(o.id));
+  if (toInsert.length > 0) {
+    const startPos = toUpdate.length;
+    const { error: optError } = await supabase
+      .from("poll_options")
+      .insert(toInsert.map((o, i) => ({ poll_id: id, label: o.label, position: startPos + i })));
+    if (optError) return { error: optError.message };
+  }
 
   revalidatePath("/admin/polls");
   revalidatePath(`/admin/polls/${id}`);
   revalidatePath("/polls");
   revalidatePath(`/polls/${id}`);
   return { id };
+}
+
+export async function duplicatePollAction(id: string) {
+  const user = await getCurrentUser();
+  const permError = requirePollsManage(user);
+  if (permError) return { error: permError };
+
+  const supabase = await createClient();
+  const { data: original } = await supabase.from("polls").select("*, poll_options(*)").eq("id", id).single();
+  if (!original) return { error: "Poll not found." };
+
+  const { data: copy, error } = await supabase
+    .from("polls")
+    .insert({
+      tenant_id: user!.profile.tenant_id,
+      question: `${original.question} (copy)`,
+      description: original.description,
+      author_id: user!.profile.id,
+      status: "draft",
+    })
+    .select()
+    .single();
+  if (error) return { error: error.message };
+
+  const options = (original.poll_options as { label: string; position: number }[]) ?? [];
+  if (options.length > 0) {
+    await supabase.from("poll_options").insert(
+      options
+        .sort((a, b) => a.position - b.position)
+        .map((o, i) => ({ poll_id: copy.id, label: o.label, position: i }))
+    );
+  }
+
+  revalidatePath("/admin/polls");
+  return { id: copy.id as string };
 }
 
 export async function closePollAction(id: string) {

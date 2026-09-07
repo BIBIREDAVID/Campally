@@ -5,6 +5,7 @@ import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
 import { getPollForEdit, getPollResults } from "@/lib/queries/polls";
 import { PollForm } from "@/components/polls/poll-form";
 import { ClosePollButton } from "@/components/polls/close-poll-button";
+import { DuplicatePollButton } from "@/components/polls/duplicate-poll-button";
 import { PollStatusBadge } from "@/components/polls/poll-badges";
 
 export default async function EditPollPage({ params }: { params: Promise<{ id: string }> }) {
@@ -30,7 +31,10 @@ export default async function EditPollPage({ params }: { params: Promise<{ id: s
           <h1 className="text-xl font-bold">Edit poll</h1>
           <PollStatusBadge status={poll.status} />
         </div>
-        {poll.status === "published" && <ClosePollButton id={id} />}
+        <div className="flex gap-2">
+          <DuplicatePollButton id={id} />
+          {poll.status === "published" && <ClosePollButton id={id} />}
+        </div>
       </div>
 
       <PollForm existing={poll} />

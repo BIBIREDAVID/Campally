@@ -16,6 +16,20 @@ export interface RankedItem {
   metric: number;
 }
 
+export interface CronJobStatus {
+  job_name: string;
+  schedule: string;
+  active: boolean;
+  last_run_at: string | null;
+  last_status: string | null;
+}
+
+export async function getCronJobStatus(): Promise<CronJobStatus[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("get_cron_job_status");
+  return (data ?? []) as CronJobStatus[];
+}
+
 export async function getCasesByCategory(): Promise<CaseCategoryCount[]> {
   const supabase = await createClient();
   const { data } = await supabase.from("cases").select("case_categories(name)");

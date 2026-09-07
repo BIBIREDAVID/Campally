@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/queries/current-user";
+import { checkRateLimit } from "@/lib/rate-limit";
 import type { CasePriority, CaseStatus } from "@/types/domain";
 
 function generateReferenceNumber() {
@@ -22,6 +23,12 @@ export interface SubmitCaseInput {
 export async function submitCaseAction(input: SubmitCaseInput) {
   const user = await getCurrentUser();
   if (!user) return { error: "Not authenticated." };
+
+  // 10 submissions per 10 minutes is well above any real student's need
+  // (including someone retrying after fixing a validation error) and
+  // blocks a compromised or scripted account from flooding the case queue.
+  const allowed = await checkRateLimit("submit_case", user.profile.id, 10, 600);
+  if (!allowed) return { error: "Too many cases submitted recently. Wait a few minutes and try again." };
 
   const supabase = await createClient();
   const referenceNumber = generateReferenceNumber();

@@ -7,11 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createPollAction, updatePollAction } from "@/lib/actions/polls";
+import { createPollAction, updatePollAction, type PollOptionInput } from "@/lib/actions/polls";
 import type { Poll } from "@/types/domain";
 
 interface Props {
   existing?: Poll;
+}
+
+function newOption(): PollOptionInput {
+  return { label: "" };
 }
 
 function toLocalDatetimeInput(iso: string | null): string {
@@ -26,14 +30,16 @@ export function PollForm({ existing }: Props) {
   const [question, setQuestion] = useState(existing?.question ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
   const [closesAt, setClosesAt] = useState(toLocalDatetimeInput(existing?.closes_at ?? null));
-  const [options, setOptions] = useState<string[]>(
-    existing?.poll_options?.length ? existing.poll_options.map((o) => o.label) : ["", ""]
+  const [options, setOptions] = useState<PollOptionInput[]>(
+    existing?.poll_options?.length
+      ? existing.poll_options.map((o) => ({ id: o.id, label: o.label }))
+      : [newOption(), newOption()]
   );
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   function updateOption(i: number, value: string) {
-    setOptions((prev) => prev.map((o, idx) => (idx === i ? value : o)));
+    setOptions((prev) => prev.map((o, idx) => (idx === i ? { ...o, label: value } : o)));
   }
 
   function removeOption(i: number) {
@@ -83,8 +89,8 @@ export function PollForm({ existing }: Props) {
       <div className="flex flex-col gap-2">
         <Label>Options</Label>
         {options.map((opt, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <Input value={opt} onChange={(e) => updateOption(i, e.target.value)} placeholder={`Option ${i + 1}`} />
+          <div key={opt.id ?? `new-${i}`} className="flex items-center gap-2">
+            <Input value={opt.label} onChange={(e) => updateOption(i, e.target.value)} placeholder={`Option ${i + 1}`} />
             {options.length > 2 && (
               <button
                 type="button"
@@ -97,9 +103,14 @@ export function PollForm({ existing }: Props) {
             )}
           </div>
         ))}
-        <Button type="button" variant="outline" size="sm" className="w-fit gap-1.5" onClick={() => setOptions((p) => [...p, ""])}>
+        <Button type="button" variant="outline" size="sm" className="w-fit gap-1.5" onClick={() => setOptions((p) => [...p, newOption()])}>
           <Plus size={14} /> Add option
         </Button>
+        {existing && existing.poll_options && existing.poll_options.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            Editing an existing option keeps its votes. Removing one deletes its votes.
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-1.5">

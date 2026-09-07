@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search, Clock } from "lucide-react";
 import { trackCaseByReference } from "@/lib/queries/cases";
 import { TrackCaseForm } from "@/components/cases/track-case-form";
 import { CASE_STATUS_LABELS, type CaseStatus } from "@/types/domain";
@@ -23,7 +23,15 @@ export default async function TrackCasePage({
 
       <TrackCaseForm initialReference={ref} />
 
-      {ref && !result?.data && (
+      {result?.rateLimited && (
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-8 text-center">
+          <Clock className="h-8 w-8 text-muted-foreground" />
+          <p className="text-sm font-medium">Too many lookups</p>
+          <p className="text-xs text-muted-foreground">Wait a minute and try again.</p>
+        </div>
+      )}
+
+      {ref && !result?.data && !result?.rateLimited && (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-8 text-center">
           <Search className="h-8 w-8 text-muted-foreground" />
           <p className="text-sm font-medium">No case found for &ldquo;{ref}&rdquo;</p>

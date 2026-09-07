@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import { Clock, CheckCircle2, XCircle, MinusCircle } from "lucide-react";
 import { getCurrentUser, hasPermission } from "@/lib/queries/current-user";
 import {
   getCasesByCategory,
+  getCronJobStatus,
   getFeedbackSummary,
   getResolutionStats,
   getTopClubsByFollowers,
@@ -9,6 +11,17 @@ import {
   getTopEventsByRsvp,
 } from "@/lib/queries/reports";
 import { Card } from "@/components/ui/card";
+
+const CRON_JOB_LABELS: Record<string, string> = {
+  "union-event-reminders": "Event reminders",
+  "union-deal-expiry-reminders": "Deal expiry reminders",
+};
+
+function CronStatusIcon({ status }: { status: string | null }) {
+  if (status === "succeeded") return <CheckCircle2 size={15} className="text-[var(--status-open)]" />;
+  if (status === "failed") return <XCircle size={15} className="text-destructive" />;
+  return <MinusCircle size={15} className="text-muted-foreground" />;
+}
 
 function RankedList({ items, unit }: { items: { id: string; label: string; metric: number }[]; unit: string }) {
   if (items.length === 0) return <p className="text-sm text-muted-foreground">No data yet.</p>;
@@ -37,13 +50,14 @@ export default async function ReportsPage() {
   if (!user) redirect("/login");
   if (!hasPermission(user, "reports.view")) redirect("/");
 
-  const [categories, resolution, feedback, topEvents, topClubs, topDeals] = await Promise.all([
+  const [categories, resolution, feedback, topEvents, topClubs, topDeals, cronJobs] = await Promise.all([
     getCasesByCategory(),
     getResolutionStats(),
     getFeedbackSummary(),
     getTopEventsByRsvp(),
     getTopClubsByFollowers(),
     getTopDealsByEngagement(),
+    getCronJobStatus(),
   ]);
 
   const totalCases = categories.reduce((sum, c) => sum + c.count, 0);
@@ -90,6 +104,36 @@ export default async function ReportsPage() {
           <RankedList items={topDeals.map((d) => ({ id: d.id, label: d.label, metric: d.views + d.saves }))} unit="views+saves" />
         </Card>
       </div>
+
+      <Card className="p-5">
+        <h2 className="mb-3 flex items-center gap-1.5 text-sm font-bold text-muted-foreground">
+          <Clock size={14} /> Scheduled jobs
+        </h2>
+        {cronJobs.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No scheduled jobs found — pg_cron may not be enabled on this project.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2.5">
+            {cronJobs.map((j) => (
+              <li key={j.job_name} className="flex items-center gap-3 text-sm">
+                <CronStatusIcon status={j.last_status} />
+                <span className="w-44 shrink-0 font-medium">{CRON_JOB_LABELS[j.job_name] ?? j.job_name}</span>
+                <span className="flex-1 text-xs text-muted-foreground">
+                  {j.last_run_at
+                    ? `Last ran ${new Date(j.last_run_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
+                    : "Hasn't run yet"}
+                </span>
+                {!j.active && (
+                  <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-destructive">
+                    Disabled
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </div>
   );
 }
